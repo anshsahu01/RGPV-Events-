@@ -7,7 +7,7 @@ import "quill/dist/quill.snow.css";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import Input from "./Input";
+import Input from './Input';
 
 
 
