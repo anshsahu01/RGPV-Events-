@@ -45,6 +45,7 @@ import 'dotenv/config';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import connectDB from './config/Db.js';
+import serverless from 'serverless-http'
 
 // Route imports
 import userRouter from './routes/user.routes.js';
@@ -103,7 +104,6 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// IMPORTANT: Export for Vercel
-export default app;
+export const handler = serverless(app);
 
 
