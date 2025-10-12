@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Input from "../components/Input";
+import Input from "./Input";
 import { toast } from "react-toastify";
 
  axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
