@@ -1,4 +1,6 @@
-🧩 RGPV Events Platform  - link to website rgpv-events-296r.vercel.app/
+# 🧩 RGPV Events Platform
+
+[🧩 RGPV Events Platform](https://rgpv-events-296r.vercel.app/)
 📖 Overview
 
 RGPV Events is a full-stack web platform that allows students and organizers to host, discover, and register for college events — including hackathons, cultural, and entrepreneurship fests.
