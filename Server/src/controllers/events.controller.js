@@ -4,6 +4,67 @@ import { ApiResponse } from "../utils/apiResponse.utils.js";
 import fs from "fs";
 import { uploadOnImageKit } from "../config/ImageKit.js";
 
+// export const createEvent = async (req, res) => {
+//   try {
+//     const {
+//       title,
+//       description,
+//       date,
+//       deadline,
+//       location,
+//       createdBy,
+//       maxParticipants,
+//       category,
+//     } = req.body;
+
+//     if (
+//       [title, description, date, location, category].some(
+//         (field) => !field?.trim()
+//       )
+//     ) {
+//       return res
+//         .status(400)
+//         .json(new ApiResponse(400, {}, "All fields are required"));
+//     }
+
+//     const bannerImageLocalPath = req.file?.path;
+
+//     if (!bannerImageLocalPath) {
+//       throw new ApiError(400, "Banner image is required");
+//     }
+
+//     //now uploading the image on the imageKit
+
+//     const bannerImage = await uploadOnImageKit(bannerImageLocalPath);
+
+//     if (!bannerImage || !bannerImage.url) {
+//       throw new ApiError(500, "Error uplaoding image on imagekit");
+//     }
+//     const event = await Event.create({
+//       title,
+//       description,
+//       date,
+//       deadline,
+//       location,
+//       bannerImage: bannerImage.url,
+//       maxParticipants,
+//       createdBy: req.user._id,
+//       category,
+//     });
+
+//     if (!event) {
+//       throw new ApiError("Error in creating event");
+//     }
+
+//     return res
+//       .status(201)
+//       .json(new ApiResponse(201, event, "Event created successfully"));
+//   } catch (error) {
+//     console.error("Error in creating event", error);
+//     throw new ApiError(500, "Error in creating event");
+//   }
+// };
+
 export const createEvent = async (req, res) => {
   try {
     const {
@@ -12,11 +73,11 @@ export const createEvent = async (req, res) => {
       date,
       deadline,
       location,
-      createdBy,
       maxParticipants,
       category,
     } = req.body;
 
+    // Validation (यह हिस्सा वही रहेगा)
     if (
       [title, description, date, location, category].some(
         (field) => !field?.trim()
@@ -27,100 +88,102 @@ export const createEvent = async (req, res) => {
         .json(new ApiResponse(400, {}, "All fields are required"));
     }
 
-    const bannerImageLocalPath = req.file?.path;
-
-    if (!bannerImageLocalPath) {
+    // 1. लोकल पाथ की जगह सीधे req.file को चेक करें
+    if (!req.file) {
       throw new ApiError(400, "Banner image is required");
     }
 
-    //now uploading the image on the imageKit
+    // 2. मेमोरी से बफर और ओरिजिनल फाइलनेम निकालें
+    const bannerFileBuffer = req.file.buffer;
+    const originalFileName = req.file.originalname;
 
-    const bannerImage = await uploadOnImageKit(bannerImageLocalPath);
+    // 3. अपडेटेड uploader फंक्शन को बफर और फाइलनेम के साथ कॉल करें
+    const uploadedBanner = await uploadOnImageKit(bannerFileBuffer, originalFileName);
 
-    if (!bannerImage || !bannerImage.url) {
-      throw new ApiError(500, "Error uplaoding image on imagekit");
+    if (!uploadedBanner || !uploadedBanner.url) {
+      throw new ApiError(500, "Error uploading image on ImageKit");
     }
+    
+    // 4. ImageKit से मिले URL का उपयोग करें
     const event = await Event.create({
       title,
       description,
       date,
       deadline,
       location,
-      bannerImage: bannerImage.url,
+      bannerImage: uploadedBanner.url, // 👈 यहाँ URL का इस्तेमाल करें
       maxParticipants,
       createdBy: req.user._id,
       category,
     });
 
     if (!event) {
-      throw new ApiError("Error in creating event");
+      throw new ApiError(500, "Error in creating event");
     }
 
     return res
       .status(201)
       .json(new ApiResponse(201, event, "Event created successfully"));
+
   } catch (error) {
     console.error("Error in creating event", error);
-    throw new ApiError(500, "Error in creating event");
+    // सुनिश्चित करें कि आपका ApiError हैंडलर सही से रिस्पॉन्स भेजता है
+    return res.status(error.statusCode || 500).json({
+        message: error.message || "Internal Server Error",
+        success: false
+    });
   }
 };
 
 export const updateEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const {
-      title,
-      description,
-      date,
-      location,
-      deadline,
-      bannerImage,
-      maxParticipants,
-      category,
-    } = req.body;
+    const { ...fieldsToUpdate } = req.body; // बॉडी से सभी फील्ड्स ले लें
 
     const event = await Event.findById(eventId);
-
-    // checking so that the owner only can update the event
-    if (event.createdBy.toString() !== req.user._id.toString()) {
-      throw new ApiError(403, "You are not authorized to update this event");
-    }
-
     if (!event) {
       throw new ApiError(404, "Event not found");
     }
 
+    // ओनरशिप चेक (यह हिस्सा वही रहेगा)
+    if (event.createdBy.toString() !== req.user._id.toString()) {
+      throw new ApiError(403, "You are not authorized to update this event");
+    }
+
+    // 1. चेक करें कि क्या कोई नई फाइल अपलोड हुई है
+    if (req.file) {
+      const bannerFileBuffer = req.file.buffer;
+      const originalFileName = req.file.originalname;
+
+      const uploadedBanner = await uploadOnImageKit(bannerFileBuffer, originalFileName);
+      if (!uploadedBanner || !uploadedBanner.url) {
+        throw new ApiError(500, "Failed to update banner image on ImageKit");
+      }
+      
+      // 2. अगर नई इमेज अपलोड हुई है, तो उसका URL अपडेट होने वाले डेटा में जोड़ दें
+      fieldsToUpdate.bannerImage = uploadedBanner.url;
+    }
+
     const updatedEvent = await Event.findByIdAndUpdate(
       eventId,
-      {
-        $set: {
-          title,
-          description,
-          date,
-          deadline,
-          location,
-          bannerImage,
-          maxParticipants,
-          category,
-        },
-      },
-
-      {
-        new: true,
-        runValidators: true,
-      }
+      { $set: fieldsToUpdate }, // 👈 डायनामिक रूप से सभी फील्ड्स को अपडेट करें
+      { new: true, runValidators: true }
     );
 
     if (!updatedEvent) {
-      throw new ApiError(404, "Error in updating event");
+      throw new ApiError(500, "Error in updating event");
     }
 
     return res
       .status(200)
       .json(new ApiResponse(200, updatedEvent, "Event updated successfully"));
+
   } catch (error) {
     console.error("Error while updating event", error.message);
-    throw new ApiError(500, "Failed to update Event");
+     return res.status(error.statusCode || 500).json({
+        message: error.message || "Internal Server Error",
+        success: false
+    });
   }
 };
 

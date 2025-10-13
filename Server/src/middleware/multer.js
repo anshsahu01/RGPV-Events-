@@ -1,12 +1,28 @@
+
+
 import multer from 'multer';
 
+
+/*
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, './public/temp');
+  },
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  }
+});
+*/
 
 
 const storage = multer.memoryStorage();
 
-const upload = multer({ storage });
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 1024 * 1024 * 5 } // 5 MB limit
+});
 
-export default upload
+export default upload;
 
 
 // for local host----
