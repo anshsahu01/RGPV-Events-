@@ -77,7 +77,7 @@ export const createEvent = async (req, res) => {
       category,
     } = req.body;
 
-    // Validation (यह हिस्सा वही रहेगा)
+   
     if (
       [title, description, date, location, category].some(
         (field) => !field?.trim()
@@ -88,30 +88,27 @@ export const createEvent = async (req, res) => {
         .json(new ApiResponse(400, {}, "All fields are required"));
     }
 
-    // 1. लोकल पाथ की जगह सीधे req.file को चेक करें
     if (!req.file) {
       throw new ApiError(400, "Banner image is required");
     }
 
-    // 2. मेमोरी से बफर और ओरिजिनल फाइलनेम निकालें
     const bannerFileBuffer = req.file.buffer;
     const originalFileName = req.file.originalname;
 
-    // 3. अपडेटेड uploader फंक्शन को बफर और फाइलनेम के साथ कॉल करें
     const uploadedBanner = await uploadOnImageKit(bannerFileBuffer, originalFileName);
 
     if (!uploadedBanner || !uploadedBanner.url) {
       throw new ApiError(500, "Error uploading image on ImageKit");
     }
     
-    // 4. ImageKit से मिले URL का उपयोग करें
+
     const event = await Event.create({
       title,
       description,
       date,
       deadline,
       location,
-      bannerImage: uploadedBanner.url, // 👈 यहाँ URL का इस्तेमाल करें
+      bannerImage: uploadedBanner.url,
       maxParticipants,
       createdBy: req.user._id,
       category,
@@ -127,7 +124,7 @@ export const createEvent = async (req, res) => {
 
   } catch (error) {
     console.error("Error in creating event", error);
-    // सुनिश्चित करें कि आपका ApiError हैंडलर सही से रिस्पॉन्स भेजता है
+
     return res.status(error.statusCode || 500).json({
         message: error.message || "Internal Server Error",
         success: false
@@ -138,19 +135,18 @@ export const createEvent = async (req, res) => {
 export const updateEvent = async (req, res) => {
   try {
     const { eventId } = req.params;
-    const { ...fieldsToUpdate } = req.body; // बॉडी से सभी फील्ड्स ले लें
+    const { ...fieldsToUpdate } = req.body; 
 
     const event = await Event.findById(eventId);
     if (!event) {
       throw new ApiError(404, "Event not found");
     }
 
-    // ओनरशिप चेक (यह हिस्सा वही रहेगा)
+
     if (event.createdBy.toString() !== req.user._id.toString()) {
       throw new ApiError(403, "You are not authorized to update this event");
     }
 
-    // 1. चेक करें कि क्या कोई नई फाइल अपलोड हुई है
     if (req.file) {
       const bannerFileBuffer = req.file.buffer;
       const originalFileName = req.file.originalname;
@@ -160,13 +156,13 @@ export const updateEvent = async (req, res) => {
         throw new ApiError(500, "Failed to update banner image on ImageKit");
       }
       
-      // 2. अगर नई इमेज अपलोड हुई है, तो उसका URL अपडेट होने वाले डेटा में जोड़ दें
+
       fieldsToUpdate.bannerImage = uploadedBanner.url;
     }
 
     const updatedEvent = await Event.findByIdAndUpdate(
       eventId,
-      { $set: fieldsToUpdate }, // 👈 डायनामिक रूप से सभी फील्ड्स को अपडेट करें
+      { $set: fieldsToUpdate }, 
       { new: true, runValidators: true }
     );
 
