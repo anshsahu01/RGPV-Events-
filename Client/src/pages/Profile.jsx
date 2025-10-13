@@ -34,7 +34,12 @@ function Profile() {
           `/api/user/${userId}`,
           { headers: { Authorization: accessToken } }
         );
-        setUser(userRes.data.data?.user || userRes.data.user || userRes.data);
+        setUser(userRes.data.data);
+
+        console.log(user);
+        if(userRes){
+          console.log("user",userRes);
+        }
 
         const hostedRes = await axios.get(
           `/api/user/usershostedevents/${userId}`,
