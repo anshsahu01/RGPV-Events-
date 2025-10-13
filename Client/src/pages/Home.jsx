@@ -7,7 +7,7 @@ import HomeHero from "../components/herosection";
 
 
 
- axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
+ axios.defaults.baseURL = "http://localhost:3000";  // import.meta.env.VITE_BASE_URL ||  
 
 function Home() {
   const [events, setEvents] = useState([]);
