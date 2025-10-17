@@ -14,8 +14,8 @@ function App() {
 const userId = localStorage.getItem("userId");
 
 if (accessToken && refreshToken && userId) {
-  console.log("accesstoken",accessToken);
-  console.log("userId",userId);
+  // console.log("accesstoken",accessToken);
+  // console.log("userId",userId);
   store.dispatch(setTokens({ accessToken, refreshToken }));
   store.dispatch(setUserId(userId));
 }

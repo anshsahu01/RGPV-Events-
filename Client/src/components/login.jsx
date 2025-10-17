@@ -30,7 +30,7 @@ function LoginCompo() {
       );
 
       const result = resp.data;
-      console.log("LOGIN RESPONSE:", result);
+      // console.log("LOGIN RESPONSE:", result);
 
       if (result?.statuscode === 200 || result?.success) {
   
