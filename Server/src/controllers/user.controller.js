@@ -139,7 +139,7 @@ export const loginUser = async (req, res, next) => {
     // cookie options
     const options = {
       httpOnly: true,
-      secure: false, // true for production 
+      secure: true, // true for production 
       sameSite: "strict",
     };
 
