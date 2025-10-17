@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import Input from "./Input";
 import { toast } from "react-toastify";
 
- axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
+//  axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
 function EventRegister() {
 
 
@@ -42,18 +42,14 @@ function EventRegister() {
       }
       
       
-      const res = await axios.post(
-        `/api/registrations/register-event`,
+      const res = await api.post(
+        `/registrations/register-event`,
         {
           eventId,
 
           ...formData,
         },
-        {
-          headers: {
-            Authorization:accessToken, // user token
-          },
-        }
+        
       );
 
       if (res.data) {

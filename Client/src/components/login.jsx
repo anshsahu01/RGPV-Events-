@@ -7,13 +7,13 @@ import Input from './Input';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import axios from "axios";
+import api from '../api/axiosInstance';
 import { toast } from "react-toastify";
 import { setUserId, setTokens } from '../redux/authSlice';
 
 
 
- axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
+//  axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
 
 function LoginCompo() {
   const navigate = useNavigate();
@@ -23,8 +23,8 @@ function LoginCompo() {
 
   const loginUser = async (data) => {
     try {
-      const resp = await axios.post(
-        "/api/user/login",
+      const resp = await api.post(
+        "/user/login",
         data,
         { headers: { "Content-Type": "application/json" } }
       );
@@ -124,7 +124,7 @@ function LoginCompo() {
 
         {/* Link */}
         <p className="text-center text-sm text-gray-600">
-          Not registered?{" "}
+          Not registered?{"/signup"}
           <span
             onClick={() => navigate("/register")}
             className="text-blue-500 font-semibold cursor-pointer hover:underline"

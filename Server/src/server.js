@@ -17,7 +17,8 @@ await connectDB();
 
 // MIDDLEWARE
 app.use(cors({
-   origin:"*" ,  
+   origin:  process.env.CLIENT_URL,
+     credentials: true,  
   methods : ["GET","POST"]
 }));
 

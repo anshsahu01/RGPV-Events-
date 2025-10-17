@@ -3,13 +3,13 @@ import Input from './Input';
 import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import axios from "axios";
-import axiosInstance from '../utils/axiosInstance';
+
+import api from '../api/axiosInstance';
 import { toast } from 'react-toastify';
 
 
 
- axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
+
 function SignupCompo() {
  const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -25,7 +25,7 @@ const signupUser = async (data) => {
 
   try {
 
-    const response = await axios.post('/api/user/register', data);
+    const response = await api.post('/user/register', data);
 
 
     if (response.data.success) {

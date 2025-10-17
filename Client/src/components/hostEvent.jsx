@@ -1,21 +1,19 @@
-
-
 import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import Quill from "quill";
 import "quill/dist/quill.snow.css";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
-import Input from './Input';
-
-
-
-
- axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
+import Input from "./Input";
 
 function AddEvent() {
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm();
   const [isCreating, setIsCreating] = useState(false);
   const [bannerImage, setBannerImage] = useState(null);
   const [preview, setPreview] = useState(null);
@@ -24,9 +22,8 @@ function AddEvent() {
 
   const { accessToken, userId } = useSelector((state) => state.auth);
 
-  const eventCategories = ["Cultural", "Tech", "Entrepreneurship"]; 
+  const eventCategories = ["Cultural", "Tech", "Entrepreneurship"];
 
-  
   useEffect(() => {
     if (!quillRef.current && editorRef.current) {
       quillRef.current = new Quill(editorRef.current, { theme: "snow" });
@@ -59,14 +56,11 @@ function AddEvent() {
       data.append("deadline", formData.deadline);
       data.append("location", formData.location);
       data.append("maxParticipants", formData.maxParticipants || "");
-      data.append("category", formData.category); 
+      data.append("category", formData.category);
       if (bannerImage) data.append("bannerImage", bannerImage);
 
-      const res = await axios.post("/api/events/create-event", data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: accessToken,
-        },
+      const res = await api.post("/events/create-event", data, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       if (res.data.success) {
@@ -74,10 +68,11 @@ function AddEvent() {
       } else {
         toast.error(res.data.message || "Error creating event");
       }
-
     } catch (error) {
       console.error("Error creating event:", error);
-      toast.error(error.response?.data?.message || "Server error while creating event");
+      toast.error(
+        error.response?.data?.message || "Server error while creating event"
+      );
     } finally {
       setIsCreating(false);
     }
@@ -95,17 +90,32 @@ function AddEvent() {
         onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-3xl bg-white p-6 md:p-10 rounded-xl shadow-md space-y-6"
       >
-        <h2 className="text-2xl font-bold text-gray-800 text-center mb-4">Create New Event</h2>
+        <h2 className="text-2xl font-bold text-gray-800 text-center mb-4">
+          Create New Event
+        </h2>
 
         {/* Banner Upload */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Event Banner</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Event Banner
+          </label>
           <label className="cursor-pointer flex items-center justify-center border-2 border-dashed rounded-lg p-4 bg-gray-50 hover:bg-gray-100 transition">
-            <input type="file" accept="image/*" hidden onChange={handleImageChange} />
+            <input
+              type="file"
+              accept="image/*"
+              hidden
+              onChange={handleImageChange}
+            />
             {preview ? (
-              <img src={preview} alt="Banner Preview" className="w-full h-40 object-cover rounded" />
+              <img
+                src={preview}
+                alt="Banner Preview"
+                className="w-full h-40 object-cover rounded"
+              />
             ) : (
-              <p className="text-gray-500 text-sm">Click to upload banner image</p>
+              <p className="text-gray-500 text-sm">
+                Click to upload banner image
+              </p>
             )}
           </label>
         </div>
@@ -117,13 +127,22 @@ function AddEvent() {
           placeholder="Enter event title"
           {...register("title", { required: "Title is required" })}
         />
-        {errors.title && <p className="text-red-500 text-sm">{errors.title.message}</p>}
+        {errors.title && (
+          <p className="text-red-500 text-sm">{errors.title.message}</p>
+        )}
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-          <div ref={editorRef} className="h-48 border border-gray-300 rounded-md bg-white" />
-          {errors.description && <p className="text-red-500 text-sm">{errors.description.message}</p>}
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Description
+          </label>
+          <div
+            ref={editorRef}
+            className="h-48 border border-gray-300 rounded-md bg-white"
+          />
+          {errors.description && (
+            <p className="text-red-500 text-sm">{errors.description.message}</p>
+          )}
         </div>
 
         {/* Date & Deadline */}
@@ -133,7 +152,9 @@ function AddEvent() {
             type="date"
             {...register("date", { required: "Event date is required" })}
           />
-          {errors.date && <p className="text-red-500 text-sm">{errors.date.message}</p>}
+          {errors.date && (
+            <p className="text-red-500 text-sm">{errors.date.message}</p>
+          )}
 
           <Input
             label="Registration Deadline"
@@ -149,7 +170,9 @@ function AddEvent() {
           placeholder="Enter event location"
           {...register("location", { required: "Location is required" })}
         />
-        {errors.location && <p className="text-red-500 text-sm">{errors.location.message}</p>}
+        {errors.location && (
+          <p className="text-red-500 text-sm">{errors.location.message}</p>
+        )}
 
         {/* Max Participants */}
         <Input
@@ -161,17 +184,23 @@ function AddEvent() {
 
         {/* Category Select */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Category
+          </label>
           <select
             {...register("category", { required: "Category is required" })}
             className="border border-blue-600 p-3 rounded-xl w-full"
           >
             <option value="">Select category</option>
             {eventCategories.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
             ))}
           </select>
-          {errors.category && <p className="text-red-500 text-sm">{errors.category.message}</p>}
+          {errors.category && (
+            <p className="text-red-500 text-sm">{errors.category.message}</p>
+          )}
         </div>
 
         {/* Submit */}
@@ -188,6 +217,3 @@ function AddEvent() {
 }
 
 export default AddEvent;
-
-
-

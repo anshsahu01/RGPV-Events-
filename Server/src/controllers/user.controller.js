@@ -10,6 +10,22 @@ import { Registration } from "../models/registration.model.js";
 import { ApiError } from "../utils/apiError.utils.js";
 import { ApiResponse } from "../utils/apiResponse.utils.js";
 
+import crypto from 'crypto'
+import { IncomingMessage } from "http";
+
+
+
+// funtion for hashing the tokens with the help of the crypto-js npm library
+
+const hashToken = (token) => {
+  crypto.createHash("sha256").update(token).digest("hex");
+}
+
+
+// NOTE - hum database mein hashed token hi store karenge and user means client ko actual token hi denge
+// db mein hasehed isiliye taki agar db compromise ho to token na mile attackers ko
+
+
 const generateAccessAndRefreshToken = async (userId) => {
   try {
     const user = await User.findById(userId);
@@ -123,7 +139,7 @@ export const loginUser = async (req, res, next) => {
     // cookie options
     const options = {
       httpOnly: true,
-      secure: true, 
+      secure: false, // true for production 
       sameSite: "strict",
     };
 
@@ -145,6 +161,91 @@ export const loginUser = async (req, res, next) => {
       .json(new ApiResponse(500, {}, "Error while logging in user"));
   }
 };
+
+
+
+
+
+//  CONTROLLER TO REFRESH THE ACCESS TOKEN WITH THE REFRESH TOKEN
+
+
+
+
+export const refreshAccessToken = async (req, res, next) => {
+  try {
+    const incomingRefreshToken = req.cookies?.refreshToken || req.body.refreshToken;
+
+    if (!incomingRefreshToken) {
+      return res
+        .status(401)
+        .json(new ApiResponse(401, {}, "Refresh Token Not Provided"));
+    }
+
+    // Verify the refresh token
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
+    } catch (error) {
+      return res
+        .status(401)
+        .json(new ApiResponse(401, {}, "Invalid or expired refresh token"));
+    }
+
+    // Find the user from DB
+    const user = await User.findById(decodedToken?._id);
+    if (!user) {
+      return res
+        .status(404)
+        .json(new ApiResponse(404, {}, "User not found for this token"));
+    }
+
+    // Compare tokens
+    const hashedToken = hashToken(incomingRefreshToken);
+    if (user.refreshToken !== hashedToken) {
+      return res
+        .status(403)
+        .json(new ApiResponse(403, {}, "Refresh token mismatch"));
+    }
+
+    // Generate new tokens
+    const accessToken = user.generateAccessToken();
+    const newRefreshToken = user.generateRefreshToken();
+
+    // Hash and store new refresh token
+    const newHashedRefreshToken = hashToken(newRefreshToken);
+    user.refreshToken = newHashedRefreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    // Set cookie options
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    };
+
+    // Send new tokens
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          {
+            accessToken,
+            refreshToken: newRefreshToken,
+          },
+          "Tokens refreshed successfully"
+        )
+      );
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    return res
+      .status(500)
+      .json(new ApiResponse(500, {}, "Error while refreshing token"));
+  }
+};
+
 
 
 // logout controller 

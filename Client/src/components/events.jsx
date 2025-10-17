@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import { toast } from "react-toastify";
 import { FiMapPin, FiCalendar, FiShare2 } from "react-icons/fi";
 
 
 
- axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
+//  axios.defaults.baseURL = import.meta.env.VITE_BASE_URL ||  "http://localhost:3000";
 
 function EventDetails() {
   const { id } = useParams();
@@ -18,7 +18,7 @@ function EventDetails() {
     const fetchEvent = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`/api/events/event/${id}`);
+        const res = await api.get(`/events/event/${id}`);
         if (res.data.success) {
           setEvent(res.data.data);
         } else {

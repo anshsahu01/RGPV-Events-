@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import EventCard from "../components/eventCard";
 import { toast } from "react-toastify";
 import { Link } from "react-router-dom"; 
@@ -7,7 +7,7 @@ import HomeHero from "../components/herosection";
 
 
 
- axios.defaults.baseURL = "http://localhost:3000";  // import.meta.env.VITE_BASE_URL ||  
+//  axios.defaults.baseURL = "http://localhost:3000";  // import.meta.env.VITE_BASE_URL ||  
 
 function Home() {
   const [events, setEvents] = useState([]);
@@ -16,7 +16,7 @@ function Home() {
   const fetchEvents = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("/api/events/all-events"); 
+      const res = await api.get("/events/all-events"); 
       if (res.data.success) {
         setEvents(res.data.data);
         

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import EventCard from "../components/eventCard";
 import { FiUser, FiMail } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
-axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
+// axios.defaults.baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -13,25 +13,23 @@ function Profile() {
   const [registeredEvents, setRegisteredEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const accessToken = localStorage.getItem("accessToken");
+  // const accessToken = localStorage.getItem("accessToken");
   const userId = localStorage.getItem("userId");
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!accessToken || !userId) {
-      toast.error("Please login first!");
-      navigate("/login");
-      return;
-    }
+    // if (!accessToken || !userId) {
+    //   toast.error("Please login first!");
+    //   navigate("/login");
+    //   return;
+    // }
 
     const fetchProfileData = async () => {
 
       setLoading(true);
       try {
        
-        const userRes = await axios.get(`/api/user/${userId}`, {
-          headers: { Authorization: accessToken },
-        });
+        const userRes = await api.get(`/user/${userId}`);
 
         
         const userData = userRes.data.user;
@@ -44,12 +42,8 @@ function Profile() {
 
        
         const [hostedRes, registeredRes] = await Promise.all([
-          axios.get(`/api/user/usershostedevents/${userId}`, {
-            headers: { Authorization: accessToken },
-          }),
-          axios.get(`/api/user/registered-events/${userId}`, {
-            headers: { Authorization: accessToken },
-          }),
+          api.get(`/user/usershostedevents/${userId}`),
+          api.get(`/user/registered-events/${userId}`),
         ]);
         
 
@@ -74,7 +68,7 @@ function Profile() {
 
     fetchProfileData();
 
-  }, [accessToken, userId, navigate]);
+  }, [ userId, navigate]);
 
 
   if (loading) {
