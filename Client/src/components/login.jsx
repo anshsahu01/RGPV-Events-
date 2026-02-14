@@ -126,7 +126,7 @@ function LoginCompo() {
         <p className="text-center text-sm text-gray-600">
           Not registered?{"/signup"}
           <span
-            onClick={() => navigate("/register")}
+            onClick={() => navigate("/signup")}
             className="text-blue-500 font-semibold cursor-pointer hover:underline"
           >
             Register here
